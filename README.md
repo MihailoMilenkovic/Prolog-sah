@@ -1,2 +1,2 @@
 # Prolog-sah
-Projekat za kraj godine iz prologa
+Projekat iz prologa za kraj godine.
