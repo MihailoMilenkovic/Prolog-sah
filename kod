@@ -1,0 +1,42 @@
+/*igraj- ispisuje tablu i vraca true ako je moguca data lista poteza, a inace vraca false*/
+igraj(L,T):-
+    obrni(L,LOBR),
+    nadjiTablu(LOBR,T),
+    ispisiTablu(T).
+/*obrtanje liste na pocetku, da bi rad sa potezima bio laksi*/ 
+obrni(L,LO):-
+    obrni1(L,LO,[]).
+obrni1([],LO,LO).
+obrni1([G|R],LO,A):-obrni1(R,LO,[G|A]).
+/*ispisivanje table -red po red, svaki red element po element*/
+ispisiTablu([]):-!.
+ispisiTablu([G|R]):-
+    ispisiRed(G),ispisiTablu(R).
+ispisiRed([]):-
+    format('~n',[]),!.
+ispisiRed([G|R]):-
+    format('~a ',[G]),ispisiRed(R).
+/*nadjiTablu- vraca tablu nakon nekog niza poteza
+ 	1)izlaz iz rekurzije- pocetna tabla
+ 	2)za svaki elemenat liste igramo potez ako je moguc i vracamo izmenjenu tablu
+*/
+nadjiTablu([],[ ['R','N','B','Q','K','B','N','R'],
+                ['P','P','P','P','P','P','P','P'],
+                ['O','O','O','O','O','O','O','O'],
+                ['O','O','O','O','O','O','O','O'],
+                ['O','O','O','O','O','O','O','O'],
+                ['O','O','O','O','O','O','O','O'],
+                ['p','p','p','p','p','p','p','p'],
+                ['r','n','b','q','k','b','n','r'] ] ):-!.
+nadjiTablu([G|R],T):-
+    nadjiTablu(R,T1),odigrajPotez(G,T1,T).
+/*odigrajPotez-ima tablu pre poteza i potez, vraca tablu posle poteza ako je moguc, inace ispisuje false
+    1)nadjemo koordinate polja gde treba da se dodje 
+    2)nadjemo sva moguca mesta odakle moze da se dodje do tog polja sa datom figurom
+    3)za svako polje proveravamo da li postoji data figura na tog polju
+      a)ako ih nema nijedna- nemoguc potez
+      b)ako ima vise- ako je navedeno koja je-moguce, inace ne
+      c)ako ima samo jedna- pomerimo je na to polje, a njeno pocetno polje postaje prazno
+    X)obrada posebnih slucajeva poteza (sahovi, patovi, promocije, rokade, en-passant itd.)
+*/
+odigrajPotez(_,_,_).
