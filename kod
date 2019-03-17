@@ -3,7 +3,7 @@
  * primer: ["f4","e5","g4","Qh4#"]*/
 igraj(L,T):-
     obrni(L,LOBR),
-    nadjiTablu(LOBR,T),
+    nadjiTablu(LOBR,T,1),
     ispisiTablu(T).
 /*obrtanje liste na pocetku, da bi rad sa potezima bio laksi*/ 
 obrni(L,LO):-
@@ -28,9 +28,9 @@ nadjiTablu([],[ ['R','N','B','Q','K','B','N','R'],
                 ['O','O','O','O','O','O','O','O'],
                 ['O','O','O','O','O','O','O','O'],
                 ['p','p','p','p','p','p','p','p'],
-                ['r','n','b','q','k','b','n','r'] ] ):-!.
-nadjiTablu([G|R],T):-
-    nadjiTablu(R,T1),odigrajPotez(G,T1,T).
+                ['r','n','b','q','k','b','n','r'] ] ,1):-!.
+nadjiTablu([G|R],T,P):-
+    nadjiTablu(R,T1, P1),odigrajPotez(G,T1,T), P is P1+1.
 /*odigrajPotez-ima tablu pre poteza i potez, vraca tablu posle poteza ako je moguc, inace je false
  	0)pretvaramo string u list karaktera da bi lakse radili sa njima
  	1)nadjemo figuru koju treba pomeriti
@@ -43,30 +43,38 @@ nadjiTablu([G|R],T):-
     X)obrada posebnih slucajeva poteza (sahovi, patovi, promocije, rokade, en-passant itd.)*/
 odigrajPotez(S,TSTARA,TNOVA):-
     string_chars(S,C),
-   	nadjiFiguru(C,F),
-    nadjiKrajnjePolje(C,ROWEND,COLEND),
+   	nadjiFiguru(C,F,C2),
+    nadjiKrajnjePolje(C2,ROWEND,COLEND,C3),
     nadjiPocetnoPolje(F,ROWEND,COLEND,ROWSTART,COLSTART),
     pomeriSaKrajnjegNaPocetnoPolje(TSTARA,ROWSTART,COLSTART,ROWEND,COLEND,TNOVA),
-    proveriUslove(C,TSTARA,TNOVA).
+    proveriUslove(C3,TSTARA,TNOVA).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
-  2)inace figura koja treba da se pomeri je pesak*/
-nadjiFiguru([G|_],G):-(==(G,'R');==(G,'N');==(G,'B');==(G,'Q');==(G,'K')),!.
-nadjiFiguru(_,'P').
+  2)inace figura koja treba da se pomeri je pesak
+  nakon pronalazenja figure brise se odgovarajuci znak iz stringa*/
+nadjiFiguru([G|R],G, R):-(==(G,'R');==(G,'N');==(G,'B');==(G,'Q');==(G,'K')),!.
+nadjiFiguru(C,'P', C).
 /*nadjiKrajnjePolje-u listi poteza su zadate vrsta i kolona krajnjeg polja npr 'b','4'.
   Garantovano je da je je posledje mesto gde su karakter izmedju 'a' i 'h' i broj izemdju '1' i '8'
   bas ono mesto gde treba da se dodje.
   Da bismo dobili koordinate, obrcemo listu karaktera i trezimo prvo mesto gde je broj
   (ovo radimo jer potezi kao sto su "Rc8xb8" su validni, ali c8 u ovom slucaju nije mesto gde top treba da dodje)*/
-nadjiKrajnjePolje(C,ROWEND,COLEND):-
-    obrni(C,COBR),nadjiKrajnjePolje1(COBR,ROWEND,COLEND).
+nadjiKrajnjePolje(C2,ROWEND,COLEND,C3):- /*obrisi krajpolja da osta
+                                     Rce1 * ne lista ogranicenja sah mat...*/
+    obrni(C2,COBR),nadjiKrajnjePolje1(COBR,ROWEND,COLEND), char_code('a',ROA), char_code(G1,ROWEND+ROA-1), 
+    													   char_code('1',CO1), char_code(G2,ROA+CO1-1),
+    													   ocisti(G1, C2, PL), ocisti(G2, PL, C3).
 nadjiKrajnjePolje1([G1|[G2|_]],ROWEND,COLEND):-
     char_code(G1,ROX),char_code('1',RO1),char_code('8',RO8),ROX>=RO1,ROX=<RO8,
-	nadjiPolja(G1,G2,ROWEND,COLEND),!.
+	nadjiPolja(G1,G2,ROWEND,COLEND), !.
 nadjiKrajnjePolje1([_|R],ROWEND,COLEND):-nadjiKrajnjePolje1(R,ROWEND,COLEND).
 nadjiPolja(BR,CH,ROWEND,COLEND):-
     char_code(CH,ROX),char_code('a',ROA),ROWEND is ROX-ROA+1,
     char_code(BR,COX),char_code('1',CO1),COLEND is COX-CO1+1.
+/* ocisti brise prvo ponavljanje odredjenog elementa u datoj listi*/
+ocisti(_, [], []).
+ocisti(X, [X|R], R) :- !.
+ocisti(X, [_|R], NL) :- ocisti(X, R, NL).
 /*okPotez- ako neka figura moze da dodje sa jednog polja na drugo, tako da je potez validan
  proveravamo da li figura moze da dodje na neko mesto i da li su pocetak i kraj razliciti*/
 okPotez(F,ROWEND,COLEND,ROWSTART,COLSTART):-
@@ -104,4 +112,4 @@ mozeDaDodje('p',ROWEND,COLEND,ROWSTART,COLSTART):-
 mozeDaDodje('P',7,X,5,X).
 mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
     ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
-/*veliko slovo-upcase_atom(chstari,chnovi).*/    	
+/*veliko slovo-upcase_atom(chstari,chnovi).*/ 
