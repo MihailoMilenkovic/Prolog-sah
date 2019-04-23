@@ -10,6 +10,9 @@ obrni(L,LO):-
     obrni1(L,LO,[]).
 obrni1([],LO,LO).
 obrni1([G|R],LO,A):-obrni1(R,LO,[G|A]).
+/*broj elem u listi*/
+count([],0).
+count([_|R],N) :- count(R,N1) , N is N1+1.
 /*ispisivanje table -red po red, svaki red element po element*/
 ispisiTablu([]):-!.
 ispisiTablu([G|R]):-
@@ -30,7 +33,7 @@ nadjiTablu([],[ ['R','N','B','Q','K','B','N','R'],
                 ['p','p','p','p','p','p','p','p'],
                 ['r','n','b','q','k','b','n','r'] ] ,1):-!.
 nadjiTablu([G|R],T,P):-
-    nadjiTablu(R,T1, P1),odigrajPotez(G,T1,T), P is P1+1.
+    nadjiTablu(R,T1, P1), P is P1 + 1, odigrajPotez(G,T1,T, P).
 /*odigrajPotez-ima tablu pre poteza i potez, vraca tablu posle poteza ako je moguc, inace je false
  	0)pretvaramo string u list karaktera da bi lakse radili sa njima
  	1)nadjemo figuru koju treba pomeriti
@@ -41,19 +44,24 @@ nadjiTablu([G|R],T,P):-
       b)ako ima vise- ako je navedeno koja je-moguce, inace ne
       c)ako ima samo jedna- pomerimo je na to polje, a njeno pocetno polje postaje prazno
     X)obrada posebnih slucajeva poteza (sahovi, patovi, promocije, rokade, en-passant itd.)*/
-odigrajPotez(S,TSTARA,TNOVA):-
+odigrajPotez(S,TSTARA,TNOVA, P):-
     string_chars(S,C),
-   	nadjiFiguru(C,F,C2),
+   	nadjiFiguru(C,F2,C2),
+    nadjiIgraca(F2, P, F),
     nadjiKrajnjePolje(C2,ROWEND,COLEND,C3),
-    nadjiPocetnoPolje(F,ROWEND,COLEND,ROWSTART,COLSTART),
-    pomeriSaKrajnjegNaPocetnoPolje(TSTARA,ROWSTART,COLSTART,ROWEND,COLEND,TNOVA),
-    proveriUslove(C3,TSTARA,TNOVA).
+    nadjiPocetnoPolje(C3,F,ROWEND,COLEND,ROWSTART,COLSTART, P, TSTARA, C4, 0),
+    pomeriSaKrajnjegNaPocetnoPolje(F, TSTARA,ROWSTART,COLSTART,ROWEND,COLEND,TNOVA, 8).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
   2)inace figura koja treba da se pomeri je pesak
   nakon pronalazenja figure brise se odgovarajuci znak iz stringa*/
 nadjiFiguru([G|R],G, R):-(==(G,'R');==(G,'N');==(G,'B');==(G,'Q');==(G,'K')),!.
 nadjiFiguru(C,'P', C).
+/*ako je potez paran, prebacujemo figuru u malo slovo
+ Da li igra beli ili crni*/
+nadjiIgraca(F2, P, F2):- P mod 2 =\= 0.
+nadjiIgraca(F2, P, F):- P mod 2 =:= 0, char_code('a', ROA), char_code('A', ROCA), DIF is ROA - ROCA, 
+    					char_code(F2, FIG2), FIG is FIG2 + DIF, char_code(F, FIG).
 /*nadjiKrajnjePolje-u listi poteza su zadate vrsta i kolona krajnjeg polja npr 'b','4'.
   Garantovano je da je je posledje mesto gde su karakter izmedju 'a' i 'h' i broj izemdju '1' i '8'
   bas ono mesto gde treba da se dodje.
@@ -64,6 +72,7 @@ nadjiKrajnjePolje(C2,ROWEND,COLEND,C3):- /*obrisi krajpolja da osta
     obrni(C2,COBR),nadjiKrajnjePolje1(COBR,ROWEND,COLEND), char_code('a',ROA), char_code(G1,ROWEND+ROA-1), 
     													   char_code('1',CO1), char_code(G2,ROA+CO1-1),
     													   ocisti(G1, C2, PL), ocisti(G2, PL, C3).
+nadjiKrajnjePolje1([],'0',0).
 nadjiKrajnjePolje1([G1|[G2|_]],ROWEND,COLEND):-
     char_code(G1,ROX),char_code('1',RO1),char_code('8',RO8),ROX>=RO1,ROX=<RO8,
 	nadjiPolja(G1,G2,ROWEND,COLEND), !.
@@ -75,6 +84,13 @@ nadjiPolja(BR,CH,ROWEND,COLEND):-
 ocisti(_, [], []).
 ocisti(X, [X|R], R) :- !.
 ocisti(X, [_|R], NL) :- ocisti(X, R, NL).
+/*nadjiPocetnoPolje*/
+nadjiPocetnoPolje(C3,F,ROWEND,COLEND,ROWSTART,COLSTART, P, TSTARA, C4, BR):- BR < 2,
+    			parsirajPocetnoPolje(C3, C5), nadjiKrajnjePolje1(C5, ROWSTART, COLEND).
+    	
+parsirajPocetnoPolje([G1, G2|R], [G2, G1]):-atom(G1), G1 =\= '+', G1 =\= '#', G1 =\='x', 
+    									atom(G2), G2 =\= '+', G2 =\= '#', G2 =\='x'.
+    
 /*okPotez- ako neka figura moze da dodje sa jednog polja na drugo, tako da je potez validan
  proveravamo da li figura moze da dodje na neko mesto i da li su pocetak i kraj razliciti*/
 okPotez(F,ROWEND,COLEND,ROWSTART,COLSTART):-
@@ -113,3 +129,18 @@ mozeDaDodje('P',7,X,5,X).
 mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
     ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
 /*veliko slovo-upcase_atom(chstari,chnovi).*/ 
+
+pomeriSaKrajnjegNaPocetnoPolje(_,[],_,_,_,_,[],0):-!.
+pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1], RED):- 
+                                  obidjiRed(G,G1,RED,1,F,ROWSTART,COLSTART,ROWEND,COLEND),
+                                  pomeriSaKrajnjegNaPocetnoPolje(F,R,ROWSTART,COLSTART,ROWEND,COLEND,R1, RED1),RED is RED1+1.
+obidjiRed([],[],_,9,_,_,_,_):-!.
+obidjiRed([G|R],[G1|R1],RED,KOLONA,F,ROWSTART,COLSTART,ROWEND,COLEND):-
+         proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G1,G),proveriKranje(F,RED,KOLONA,ROWEND,COLEND,G1,G),
+        obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND).
+proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,'O',_):-
+    RED=:=ROWSTART,KOLONA=:=COLSTART,!.
+proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G,G).
+proveriKranje(F,RED,KOLONA,ROWEND,COLEND,F,_):-
+    RED=:=ROWEND,KOLONA=:=COLEND,!.
+proveriKranje(_,RED,KOLONA,ROWEND,COLEND,G,G).                    
