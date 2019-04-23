@@ -118,12 +118,12 @@ mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
             2) ostatak table ostavljamo neizmenjen*/
 pomeriSaKrajnjegNaPocetnoPolje(_,[],_,_,_,_,[],0):-!.
 pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1], RED):- 
-                                  obidjiRed(G,G1,RED,1,F,ROWSTART,COLSTART,ROWEND,COLEND),
+                                  obidjiRed(G,G1,RED,_,F,ROWSTART,COLSTART,ROWEND,COLEND),
                                   pomeriSaKrajnjegNaPocetnoPolje(F,R,ROWSTART,COLSTART,ROWEND,COLEND,R1, RED1),RED is RED1+1.
-obidjiRed([],[],_,_,_,_,_,_):-!.
+obidjiRed([],[],_,9,_,_,_,_):-!.
 obidjiRed([G|R],[G1|R1],RED,KOLONA,F,ROWSTART,COLSTART,ROWEND,COLEND):-
          proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G1,G),proveriKrajnje(F,RED,KOLONA,ROWEND,COLEND,G1,G),
-        KOLONA1 is KOLONA+1,obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND).
+        obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND),KOLONA is KOLONA1-1.
 /*proveriPocetno-tokom prolaska kroz tablu proverava da li je trenutno polje pocetno
                   1) ako jeste pise 'O' na tom mestu
                   2) ako nije pise ono sto je bilo u pocetnoj tabeli*/
