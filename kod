@@ -46,10 +46,12 @@ nadjiTablu([G|R],T,P):-
     X)obrada posebnih slucajeva poteza (sahovi, patovi, promocije, rokade, en-passant itd.)*/
 odigrajPotez(S,TSTARA,TNOVA, P):-
     string_chars(S,C),
+    /*ako je S = O-O, O-O-O, pretvroimo string u normalan potez*/
    	nadjiFiguru(C,F2,C2),
     nadjiIgraca(F2, P, F),
-    nadjiKrajnjePolje(C2,ROWEND,COLEND,C3),
-    nadjiPocetnoPolje(C3,F,ROWEND,COLEND,ROWSTART,COLSTART, P, TSTARA, C4, 0),
+    obrni(C2,C3),
+    nadjiPolje(C3,ROWEND,COLEND,C4),/*krajnje polje*/
+    nadjiPocetnoPolje(C4,F,ROWEND,COLEND,ROWSTART,COLSTART, P, TSTARA, C5, 0),
     pomeriSaKrajnjegNaPocetnoPolje(F, TSTARA,ROWSTART,COLSTART,ROWEND,COLEND,TNOVA, 8).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
@@ -62,22 +64,12 @@ nadjiFiguru(C,'P', C).
 nadjiIgraca(F2, P, F2):- P mod 2 =\= 0.
 nadjiIgraca(F2, P, F):- P mod 2 =:= 0, char_code('a', ROA), char_code('A', ROCA), DIF is ROA - ROCA, 
     					char_code(F2, FIG2), FIG is FIG2 + DIF, char_code(F, FIG).
-/*nadjiKrajnjePolje-u listi poteza su zadate vrsta i kolona krajnjeg polja npr 'b','4'.
-  Garantovano je da je je posledje mesto gde su karakter izmedju 'a' i 'h' i broj izemdju '1' i '8'
-  bas ono mesto gde treba da se dodje.
-  Da bismo dobili koordinate, obrcemo listu karaktera i trezimo prvo mesto gde je broj
-  (ovo radimo jer potezi kao sto su "Rc8xb8" su validni, ali c8 u ovom slucaju nije mesto gde top treba da dodje)*/
-nadjiKrajnjePolje(C2,ROWEND,COLEND,C3):- /*obrisi krajpolja da osta
-                                     Rce1 * ne lista ogranicenja sah mat...*/
-    obrni(C2,COBR),nadjiKrajnjePolje1(COBR,ROWEND,COLEND), char_code('a',ROA), char_code(G1,ROWEND+ROA-1), 
-    													   char_code('1',CO1), char_code(G2,ROA+CO1-1),
-    													   ocisti(G1, C2, PL), ocisti(G2, PL, C3).
-nadjiKrajnjePolje1([],'0',0).
-nadjiKrajnjePolje1([G1|[G2|_]],ROWEND,COLEND):-
+/*nalazi polje u potezu i brise ga iz poteza*/
+nadjiPolje([G1,G2|X],ROWEND,COLEND,X):-
     char_code(G1,ROX),char_code('1',RO1),char_code('8',RO8),ROX>=RO1,ROX=<RO8,
-	nadjiPolja(G1,G2,ROWEND,COLEND), !.
-nadjiKrajnjePolje1([_|R],ROWEND,COLEND):-nadjiKrajnjePolje1(R,ROWEND,COLEND).
-nadjiPolja(BR,CH,ROWEND,COLEND):-
+	pretvoriUBrojeve(G1,G2,COLEND,ROWEND), !.
+nadjiPolje([G|R],ROWEND,COLEND,R1):-nadjiPolje(R,ROWEND,COLEND,[G|R1]).                                            
+pretvoriUBrojeve(BR,CH,COLEND,ROWEND):-
     char_code(CH,ROX),char_code('a',ROA),ROWEND is ROX-ROA+1,
     char_code(BR,COX),char_code('1',CO1),COLEND is COX-CO1+1.
 /* ocisti brise prvo ponavljanje odredjenog elementa u datoj listi*/
@@ -129,7 +121,9 @@ mozeDaDodje('P',7,X,5,X).
 mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
     ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
 /*veliko slovo-upcase_atom(chstari,chnovi).*/ 
-
+/*staru tablu pretvaramo u novu tako sto:
+            1)brisemo sta se nalazilo na pocetnom polju i pisemo 'O' na tom mestu, a na krajnje pisemo slovo figure kojom igramo
+            2) ostatak table ostavljamo neizmenjen*/
 pomeriSaKrajnjegNaPocetnoPolje(_,[],_,_,_,_,[],0):-!.
 pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1], RED):- 
                                   obidjiRed(G,G1,RED,1,F,ROWSTART,COLSTART,ROWEND,COLEND),
@@ -137,10 +131,16 @@ pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1],
 obidjiRed([],[],_,9,_,_,_,_):-!.
 obidjiRed([G|R],[G1|R1],RED,KOLONA,F,ROWSTART,COLSTART,ROWEND,COLEND):-
          proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G1,G),proveriKranje(F,RED,KOLONA,ROWEND,COLEND,G1,G),
-        obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND).
+        obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND),KOLONA1 is KOLONA+1.
+/*proveriPocetno-tokom prolaska kroz tablu proverava da li je trenutno polje pocetno
+                  1) ako jeste pise 'O' na tom mestu
+                  2) ako nije pise ono sto je bilo u pocetnoj tabeli*/
 proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,'O',_):-
     RED=:=ROWSTART,KOLONA=:=COLSTART,!.
 proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G,G).
+/*proveriKrajnje-tokom prolaska kroz tablu proverava da li je trenutno polje krajnje
+                  1) ako jeste pise slovo fi na tom mestu
+                  2) ako nije pise ono sto je bilo u pocetnoj tabeli*/
 proveriKranje(F,RED,KOLONA,ROWEND,COLEND,F,_):-
     RED=:=ROWEND,KOLONA=:=COLEND,!.
-proveriKranje(_,RED,KOLONA,ROWEND,COLEND,G,G).                    
+proveriKranje(_,RED,KOLONA,ROWEND,COLEND,G,G).
