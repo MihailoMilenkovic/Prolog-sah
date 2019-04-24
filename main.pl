@@ -129,3 +129,36 @@ obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
 proveriPocetnoIliKrajnje(_, RED, KOLONA, RED, KOLONA, _, _, _, 'O'):-!.
 proveriPocetnoIliKrajnje(F, RED, KOLONA, _, _, RED, KOLONA, _, F):-!.
 proveriPocetnoIliKrajnje(_, _, _, _, _, _, _, G, G).
+nadjiFiguruNaDatojPoziciji(T,RED,KOLONA,F):-
+    NOVIRED is 8-RED+1,
+    nadjiElemenatNaPozicijiUListi(T,L,1,NOVIRED),
+    nadjiElemenatNaPozicijiUListi(L,F,1,KOLONA).
+nadjiElemenatNaPozicijiUListi([G|_],G,TRAZENAPOZICIJA,TRAZENAPOZICIJA):-!.
+nadjiElemenatNaPozicijiUListi([_|R],X,TRENUTNAPOZICIJA,TRAZENAPOZICIJA):-
+    TRENUTNAPOZICIJA1 is TRENUTNAPOZICIJA+1,nadjiElemenatNaPozicijiUListi(R,X,TRENUTNAPOZICIJA1,TRAZENAPOZICIJA).
+%pocetno polje ima datu figuru
+pocetnoPoljeImaDatuFiguru(T,F,RED,KOLONA):-nadjiFiguruNaDatojPoziciji(T,RED,KOLONA,F).
+%krajnje polje nema figuru iste boje
+krajnjePoljeNemaFiguruIsteBoje(T,F,RED,KOLONA):-boja(F,X),nadjiFiguruNaDatojPoziciji(T,RED,KOLONA,F1),boja(F1,Y),X=\=Y.
+boja('O',0):-!.
+boja(X,1):-downcase_atom(X,X1),X=:=X1,!.
+boja(X,2).
+%moze se doci figurom od pocetnog do krajnjeg polja-okPotez
+%polja na putu su prazna
+poljaNaPutuSuPrazna(_, _, _, _, _, X):- upcase_atom(X, 'N'), !.
+poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, X):- (upcase_atom(X, 'B') ; upcase_atom(X, 'R') ; upcase_atom(X, 'Q')),
+	    DX is sign(ROWEND - ROWSTART), DY is sign(COLEND - COLSTART), ROWST IS ROWSTART+DX,COLST IS COLSTART+DY,
+    	protrciKrozPut(T,ROWST,COLST, ROWEND, COLEND, DX, DY).
+
+protrciKrozPut(_,X,Y,X,Y,_,_):-!.
+protrciKrozPut(T,ROWCURR,COLCURR,ROWEND,COLEND,DX,DY):-
+    nadjiFiguruNaDatojPoziciji(T,ROWCURR,COLCURR,'O'),
+    ROWNEW is ROWCURR + DX, COLNEW is COLCURR + DY,
+    protrciKrozPut(T,ROWNEW, COLNEW, ROWEND, COLEND, DX, DY).
+
+poljaNaPutuSuPrazna(T, 7, COL, 5, COL, 'P'):- nadjiFiguruNaDatojPoziciji(T,6,COL,'O'), !.
+poljaNaPutuSuPrazna(T, 2, COL, 4, COL, 'p'):- nadjiFiguruNaDatojPoziciji(T,3,COL,'O'), !.
+poljaNaPutuSuPrazna(_, RED1, _, RED2, _, X):- abs(RED2-RED1) =:= 1, upcase_atom(X, 'P').
+%ostala ogranicenja
+
+
