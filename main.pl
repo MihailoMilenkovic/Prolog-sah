@@ -3,7 +3,7 @@
  * primer: ["f4","e5","g4","Qh4#"]*/
 igraj(L,T):-
     obrni(L,LOBR),
-    nadjiTablu(LOBR,T,1),
+    nadjiTablu(LOBR,T,_),
     ispisiTablu(T).
 /*obrtanje liste na pocetku, da bi rad sa potezima bio laksi*/ 
 obrni(L,LO):-
@@ -50,9 +50,9 @@ odigrajPotez(S,TSTARA,TNOVA, P):-
    	nadjiFiguru(C,F2,C2),
     nadjiIgraca(F2, P, F),
     obrni(C2,C3),
-    nadjiPolje(C3,ROWEND,COLEND,C4),/*krajnje polje*/
-    nadjiPolje(C4,ROWSTART,COLSTART,_),/*pocetno polje(   treba menjati*/
-    pomeriSaKrajnjegNaPocetnoPolje(F, TSTARA,ROWSTART,COLSTART,ROWEND,COLEND,TNOVA, 8).
+    nadjiPolje(C3,COLEND,ROWEND,C4),/*krajnje polje*/
+    nadjiPolje(C4,COLSTART,ROWSTART,_),/*pocetno polje(   treba menjati*/
+    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA,F,ROWSTART,COLSTART,ROWEND,COLEND, 8).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
   2)inace figura koja treba da se pomeri je pesak
@@ -116,10 +116,11 @@ mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
 /*staru tablu pretvaramo u novu tako sto:
             1)brisemo sta se nalazilo na pocetnom polju i pisemo 'O' na tom mestu, a na krajnje pisemo slovo figure kojom igramo
             2) ostatak table ostavljamo neizmenjen*/
-pomeriSaKrajnjegNaPocetnoPolje(_,[],_,_,_,_,[],0):-!.
-pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1], RED):- 
-                                  obidjiRed(G,G1,RED,1,F,ROWSTART,COLSTART,ROWEND,COLEND),
-                                  pomeriSaKrajnjegNaPocetnoPolje(F,R,ROWSTART,COLSTART,ROWEND,COLEND,R1, RED1),RED is RED1+1.
+pomeriSaPocetnogNaKrajnjePolje([],[],_,_,_,_,_,0):-!.
+pomeriSaPocetnogNaKrajnjePolje([G|R], [G1|R1], F, ROWSTART, COLSTART, ROWEND, COLEND, RED):-
+    obidjiRed(G, G1, RED, 1, F, ROWSTART, COLSTART, ROWEND, COLEND), RED1 is RED - 1,
+    pomeriSaPocetnogNaKrajnjePolje(R, R1, F, ROWSTART, COLSTART, ROWEND, COLEND, RED1).
+
 obidjiRed([],[],_,9,_,_,_,_,_):-!.
 obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
     proveriPocetnoIliKrajnje(F, RED, KOLONA, ROWSTART, COLSTART, ROWEND, COLEND, G, G1),
