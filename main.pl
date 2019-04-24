@@ -118,19 +118,13 @@ mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
             2) ostatak table ostavljamo neizmenjen*/
 pomeriSaKrajnjegNaPocetnoPolje(_,[],_,_,_,_,[],0):-!.
 pomeriSaKrajnjegNaPocetnoPolje(F, [G|R],ROWSTART,COLSTART,ROWEND,COLEND,[G1|R1], RED):- 
-                                  obidjiRed(G,G1,RED,_,F,ROWSTART,COLSTART,ROWEND,COLEND),
+                                  obidjiRed(G,G1,RED,1,F,ROWSTART,COLSTART,ROWEND,COLEND),
                                   pomeriSaKrajnjegNaPocetnoPolje(F,R,ROWSTART,COLSTART,ROWEND,COLEND,R1, RED1),RED is RED1+1.
-obidjiRed([],[],_,9,_,_,_,_):-!.
-obidjiRed([G|R],[G1|R1],RED,KOLONA,F,ROWSTART,COLSTART,ROWEND,COLEND):-
-         proveriPocetno(RED,KOLONA,ROWSTART,COLSTART,G1,G),proveriKrajnje(F,RED,KOLONA,ROWEND,COLEND,G1,G),
-        obidjiRed(R,R1,RED,KOLONA1,F,ROWSTART,COLSTART,ROWEND,COLEND),KOLONA is KOLONA1-1.
-/*proveriPocetno-tokom prolaska kroz tablu proverava da li je trenutno polje pocetno
-                  1) ako jeste pise 'O' na tom mestu
-                  2) ako nije pise ono sto je bilo u pocetnoj tabeli*/
-proveriPocetno(RED,KOLONA,RED,KOLONA,'O',_):-!.
-proveriPocetno(_,_,_,_,G,G).
-/*proveriKrajnje-tokom prolaska kroz tablu proverava da li je trenutno polje krajnje
-                  1) ako jeste pise slovo fi na tom mestu
-                  2) ako nije pise ono sto je bilo u pocetnoj tabeli*/
-proveriKrajnje(F,RED,KOLONA,RED,KOLONA,F,_):-!.
-proveriKrajnje(_,_,_,_,_,G,G).
+obidjiRed([],[],_,9,_,_,_,_,_):-!.
+obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
+    proveriPocetnoIliKrajnje(F, RED, KOLONA, ROWSTART, COLSTART, ROWEND, COLEND, G, G1),
+    KOLONA1 is KOLONA+1, obidjiRed(R, R1, RED, KOLONA1, F, ROWSTART,COLSTART,ROWEND,COLEND).
+
+proveriPocetnoIliKrajnje(_, RED, KOLONA, RED, KOLONA, _, _, _, 'O'):-!.
+proveriPocetnoIliKrajnje(F, RED, KOLONA, _, _, RED, KOLONA, _, F):-!.
+proveriPocetnoIliKrajnje(_, _, _, _, _, _, _, G, G).
