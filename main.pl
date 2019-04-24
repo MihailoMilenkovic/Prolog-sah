@@ -83,28 +83,33 @@ okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND):-
     mozeDaDodje(F,ROWSTART,COLSTART,ROWEND,COLEND).
 /*mozeDaDodje(F,xen,yen,xst,yst)- proverava da li figura F moze da dodje iz (xst,yst) na (xen,yen)*/
 /*kraljica: moze da dodje na neko polje ako to moze lovac ili top */
-mozeDaDodje(X,ROWSTART,COLSTART,ROWEND,COLEND):-format('figura je: ~a\n',[X]),
-    upcase_atom(X,'Q'),
-    mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND);
-    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('q',ROWSTART,COLSTART,ROWEND,COLEND):-
+   	mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND):-
+	(mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND);
+    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND)).
 /*top: moze da dodje na neko polje ako su vrste ili kolone jednake*/
-mozeDaDodje(X,ROWSTART,COLSTART,ROWEND,COLEND):-
-    upcase_atom(X,'R'),
+mozeDaDodje('r',ROWSTART,COLSTART,ROWEND,COLEND):-
+    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND):-
     (   ROWEND=:=ROWSTART;COLEND=:=COLSTART).
 /*lovac: moze da dodje na neko polje ako su pocetno i startno na istoj dijagonali.
   Neka 2 polja su na istoj dijagonali akko je zbir ili razlika koordinata tih polja jednaka*/
-mozeDaDodje(X,ROWSTART,COLSTART,ROWEND,COLEND):-
-    upcase_atom(X,'B'),
+mozeDaDodje('b',ROWSTART,COLSTART,ROWEND,COLEND):-
+    mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND):-
     ZB1 is ROWEND+COLEND,ZB2 is ROWSTART+COLSTART,RAZL1 is ROWEND-COLEND,RAZL2 is ROWSTART-COLSTART,
     (   ZB1=:=ZB2;RAZL1=:=RAZL2).
 /*kralj: moze da dodje na neko polje ako je razlika apsolutnih vresnosti vrsta <=1 (isto vazi i za kolone)*/
-mozeDaDodje(X,ROWSTART,COLSTART,ROWEND,COLEND):-
-    upcase_atom(X,'K'),
+mozeDaDodje('k',ROWSTART,COLSTART,ROWEND,COLEND):-
+    mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND):-
     R1 is ROWEND-ROWSTART,R2 is COLEND-COLSTART,
     abs(R1)=<1,abs(R2)=<1.
 /*konj: moze da dodje na neko polje ako je razlika apsloutnih vrednosti vrsta 1, a kolona 2(i obrnuto)*/
-mozeDaDodje(X,ROWSTART,COLSTART,ROWEND,COLEND):-
-    upcase_atom(X,'N'),
+mozeDaDodje('n',ROWSTART,COLSTART,ROWEND,COLEND):-
+    mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND).
+mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND):-
     R1 is ROWEND-ROWSTART,R2 is COLEND-COLSTART,
     (   (abs(R1)=:=1,abs(R2)=:=2);(abs(R1)=:=2,abs(R2)=:=1)  ) .
 /*pesak: 2 slucaja:
