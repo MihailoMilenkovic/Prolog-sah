@@ -44,6 +44,7 @@ nadjiTablu([G|R],T,P):-
     5)proveravamo da li je potez validan
     6)pomeramo figuru sa pocetnog na krajnje polje*/
 odigrajPotez(S,TSTARA,TNOVA, P):-
+    /*dodaj za rokadu*/
     string_chars(S,C),
     /*ako je S = O-O, O-O-O, pretvroimo string u normalan potez*/
    	nadjiFiguru(C,F2,C2),
@@ -51,8 +52,9 @@ odigrajPotez(S,TSTARA,TNOVA, P):-
     obrni(C2,C3),
     nadjiPolje(C3,COLEND,ROWEND,C4),/*krajnje polje*/
     nadjiPolje(C4,COLSTART,ROWSTART,OGRANICENJA),/*pocetno polje*/
-    proveriOgranicenja(OGRANICENJA,TSTARA,F,ROWSTART,COLSTART,ROWEND,COLEND),
-    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA,F,ROWSTART,COLSTART,ROWEND,COLEND, 8).
+    proveriOgranicenja(OGRANICENJA,TSTARA,F,ROWSTART,COLSTART,ROWEND,COLEND, P),
+    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND, 8),
+    izmeniTabluAkoJePromocija(TNOVA1,TNOVA,F,ROWEND,COLEND).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
   2)inace figura koja treba da se pomeri je pesak
@@ -82,12 +84,13 @@ pretvoriUBrojeve(BR,CH,COLEND,ROWEND):-
   4)polja na putu od pocetnog do krajnjeg su sva prazna
   5)ostala ogranicenja vaze
  * */
-proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND):-
+proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND, P):-
     pocetnoPoljeImaDatuFiguru(T,F,ROWSTART,COLSTART),
     krajnjePoljeNemaFiguruIsteBoje(T,F,ROWEND,COLEND),
     okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND),
     poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, F),
-    daLiJede(T, F, ROWEND, COLEND, LISTAOGRANICENJA).
+    daLiJede(T, F, ROWEND, COLEND, LISTAOGRANICENJA),
+    daLiJeSah(T, LISTAOGRANICENJA, P).
 /*okPotez-vraca true ako figura moze da dodje sa pocetnog na krajnje polje na praznoj tabli
  *proveravamo da li su pocetno i krajnje polje razliciti i prvalia za kretanjee svake od figura(funkcija mozeDaDodje)*/
 okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND):-
@@ -205,8 +208,42 @@ daLiJede(T, F, ROWEND, COLEND, S):- daLiJeUPotezu('x', S),
     nadjiFiguruNaDatojPoziciji(T, ROWEND, COLEND, F2), boja(F, X), boja(F2, Y), Z is X+Y, Z =:= 3.
 daLiJede(T, _, ROWEND, COLEND, S):- not(daLiJeUPotezu('x', S)), nadjiFiguruNaDatojPoziciji(T, ROWEND, COLEND, 'O').
 
+%sahovi
+daLiJeSah(T, LISTAOGRANICENJA, P):- daLiJeUPotezu('+', LISTAOGRANICENJA),kraljJeNapadnut(T,P).
+daLiJeSah(T, LISTAOGRANICENJA, P):- not(daLiJeUPotezu('+', LISTAOGRANICENJA)),not(kraljJeNapadnut(T,P)).
+kraljJeNapadnut(T,P):-P mod 2=:=1,proveriDaLiJeNapadnut('K',1,T).
+kraljJeNapadnut(T,P):-P mod 2=:=0,proveriDaLiJeNapadnut('k',2,T).
 
+proveriDaLiJeNapadnut(F,BOJANAPADACA,T):-
+    nadjiMestoUTabli(F,T,8,1,ROW,COL),nadjiDaLiJeNapadnut(T, 8, ROW,COL,BOJANAPADACA,T).%itd
+nadjiMestoUTabli(F,[G|_],TRENUTNIRED,1,TRENUTNIRED,TRAZENAKOLONA):-
+    nadjiMestoURedu(F,G,1,TRAZENAKOLONA),!.
+nadjiMestoUTabli(F,[_|R],TRENUTNIRED,1,TRAZENIRED,TRAZENAKOLONA):-
+    NOVIRED is TRENUTNIRED-1,nadjiMestoUTabli(F,R,NOVIRED,1,TRAZENIRED,TRAZENAKOLONA).
+nadjiMestoURedu(F,[F|_],TRENUTNAKOLONA,TRENUTNAKOLONA):!.
+nadjiMestoURedu(F,[_|R],TRENUTNAKOLONA,TRAZENAKOLONA):-
+    NOVAKOLONA is TRENUTNAKOLONA+1,
+    nadjiMestoURedu(F,R,NOVAKOLONA,TRAZENAKOLONA).
+nadjiDaLiJeNapadnut([G|_], TRENUTNIRED, ROW, COL, BOJANAPADACA, T):-
+    nadjiDaLiJeNapadnutURedu(T, G, TRENUTNIRED, 1, ROW, COL, BOJANAPADACA), !.
+nadjiDaLiJeNapadnut([_|R], TRENUTNIRED, ROW, COL, BOJANAPADACA, T):-
+    NOVIRED is TRENUTNIRED - 1, nadjiDaLiJeNapadnut(R, NOVIRED,ROW,COL,BOJANAPADACA, T).
+nadjiDaLiJeNapadnutURedu(T,[F|_], TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, BOJANAPADACA):-
+    boja(F, BOJANAPADACA),
+    okPotez(F,TRENUTNIRED,TRENUTNAKOLONA,ROW,COL),
+    poljaNaPutuSuPrazna(T, TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, F),!.
 
+izmeniTabluAkoJePromocija(TSTARA,TNOVA,'p',8,COLEND):-
+    postaviFiguru(TSTARA,TNOVA,'q',8,COLEND,8), !.
+izmeniTabluAkoJePromocija(TSTARA,TNOVA,'P',1,COLEND):-
+    postaviFiguru(TSTARA,TNOVA,'Q',1,COLEND,1), !.
+izmeniTabluAkoJePromocija(TSTARA,TSTARA,_,_,_):-!.
 
-
-
+postaviFiguru([G|R], [G1|R], F, TRAZENIRED, TRAZENAKOLONA, TRAZENIRED):-
+    postaviFiguruURed(G, G1, F, TRAZENAKOLONA, 1),!.
+postaviFiguru([G|R], [G|R1], F, TRAZENIRED, TRAZENAKOLONA, TRENUTNIRED):-
+    NOVIRED is TRENUTNIRED-1, postaviFiguru(R,R1,F,TRAZENIRED,TRAZENAKOLONA,NOVIRED).
+postaviFiguruURed([_|R],[F|R], F, TRAZENAKOLONA,TRAZENAKOLONA ):-!.
+postaviFiguruURed([G|R],[G|R1],F,TRAZENAKOLONA,TRENUTNAKOLONA):-
+    NOVAKOLONA is TRENUTNAKOLONA+1,postaviFiguruURed(R,R1,F,TRAZENAKOLONA,NOVAKOLONA).
+    
