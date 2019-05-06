@@ -64,8 +64,8 @@ odigrajPotez('O-O-O',TSTARA,TNOVA,P):-
  * uslovi za rokadu:
  * 1)polja izmedju kralja i topa su prazna
  * 2)kralj i top su na pocetnim pozicijama, tj. nisu se pomerali cele partije
- * (ovaj deo je komplikovaniji, jer treba videti poteze od ranije, se ovde samo proverava da li su na startnim pozicijama)
- * 3)polja izmedju i ukljucujuci kraljevo pocetno i krajnje nisu napadnuta
+ * (ovaj deo je komplikovaniji, jer treba videti poteze od ranije,pa se ovde samo proverava da li su na startnim pozicijama)
+ * 3)polja od kraljevog pocetnog do krajnjeg nisu napadnuta
  * */
 proveriUsloveZaMaluRokadu(T,RED,KRALJ,TOP):-
     boja(KRALJ,BOJA),BOJANAPADACA is 3-BOJA,
@@ -257,6 +257,7 @@ protrciKrozPut(T,ROWCURR,COLCURR,ROWEND,COLEND,DX,DY):-
  * u listi se mogu nalaziti
  *  x-jedenje
  *  +-sah
+ *  #-mat(nije jos implementiran)
  * (=,tj. promocija se ne pojavljuje, jer koristimo auto-queen(tj. pesaka pretvaramo u kraljicu ukoliko dodje do kraja table)
  * */
 
