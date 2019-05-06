@@ -53,7 +53,7 @@ odigrajPotez(S,TSTARA,TNOVA, P):-
     nadjiPolje(C3,COLEND,ROWEND,C4),/*krajnje polje*/
     nadjiPolje(C4,COLSTART,ROWSTART,OGRANICENJA),/*pocetno polje*/
     proveriOgranicenja(OGRANICENJA,TSTARA,F,ROWSTART,COLSTART,ROWEND,COLEND, P),
-    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND, 8),
+    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND/*, 8*/),
     izmeniTabluAkoJePromocija(TNOVA1,TNOVA,F,ROWEND,COLEND).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
   1)ako je prvo slovo notacije neka od figura nju pomeramo
@@ -72,7 +72,7 @@ nadjiIgraca(F2, P, F):- P mod 2 =:= 0, char_code('a', ROA), char_code('A', ROCA)
 nadjiPolje([G1,G2|X],ROWEND,COLEND,X):-
     char_code(G1,ROX),char_code('1',RO1),char_code('8',RO8),ROX>=RO1,ROX=<RO8,
 	pretvoriUBrojeve(G1,G2,COLEND,ROWEND), !.
-nadjiPolje([G|R],ROWEND,COLEND,R1):-nadjiPolje(R,ROWEND,COLEND,[G|R1]).                                            
+nadjiPolje([G|R],ROWEND,COLEND,[G|R1]):-nadjiPolje(R,ROWEND,COLEND,R1).                                            
 pretvoriUBrojeve(BR,CH,COLEND,ROWEND):-
     char_code(CH,ROX),char_code('a',ROA),ROWEND is ROX-ROA+1,
     char_code(BR,COX),char_code('1',CO1),COLEND is COX-CO1+1.
@@ -133,29 +133,28 @@ mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND):-
   2)crni:ako je na vrsti 7 moze da dodje na vrstu 5 i istu kolonu.
   	Inace moze na 1 vrstu nize, ako je aposolutna razlika kolona<=1.*/
 mozeDaDodje('p',2,X,4,X).
-mozeDaDodje('p',ROWEND,COLEND,ROWSTART,COLSTART):-
+mozeDaDodje('p',ROWSTART,COLSTART,ROWEND,COLEND):-
     ROWS is ROWEND-1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
 mozeDaDodje('P',7,X,5,X).
-mozeDaDodje('P',ROWEND,COLEND,ROWSTART,COLSTART):-
+mozeDaDodje('P',ROWSTART,COLSTART,ROWEND,COLEND):-
     ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
-/*pomeriSaPocetnogNaKrajnjePolje-vraca tablu nakon nekog poteza, ako je data tabla pre tog poteza
-    obilazimo tablu red po red, polje po polje i za svako proveravamo da li je ono pocetno ili krajnje
-    1)ako polje nije ni pocetno ni krajnje, znak u novoj tabli je isti kao i u staroj
-    2)ako je polje pocetno, upisujemo 'O' na tom mestu u novoj tabli
-    3)ako je polje krajnje upisujemo slovo figure na to mesto u novoj tabli*/
-pomeriSaPocetnogNaKrajnjePolje([],[],_,_,_,_,_,0):-!.
-pomeriSaPocetnogNaKrajnjePolje([G|R], [G1|R1], F, ROWSTART, COLSTART, ROWEND, COLEND, RED):-
-    obidjiRed(G, G1, RED, 1, F, ROWSTART, COLSTART, ROWEND, COLEND), RED1 is RED - 1,
-    pomeriSaPocetnogNaKrajnjePolje(R, R1, F, ROWSTART, COLSTART, ROWEND, COLEND, RED1).
-
-obidjiRed([],[],_,9,_,_,_,_,_):-!.
-obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
-    proveriPocetnoIliKrajnje(F, RED, KOLONA, ROWSTART, COLSTART, ROWEND, COLEND, G, G1),
-    KOLONA1 is KOLONA+1, obidjiRed(R, R1, RED, KOLONA1, F, ROWSTART,COLSTART,ROWEND,COLEND).
-
-proveriPocetnoIliKrajnje(_, RED, KOLONA, RED, KOLONA, _, _, _, 'O'):-!.
-proveriPocetnoIliKrajnje(F, RED, KOLONA, _, _, RED, KOLONA, _, F):-!.
-proveriPocetnoIliKrajnje(_, _, _, _, _, _, _, G, G).
+/*pomeriSaPocetnogNaKrajnjePolje-na pocetno polje upisujemo 'O',a na krajnje figuru kojom igramo*/
+pomeriSaPocetnogNaKrajnjePolje(TSTARA, TNOVA, F, ROWSTART, COLSTART, ROWEND, COLEND):-
+    postaviFiguruNaMesto(TSTARA,T1,F,ROWEND,COLEND),postaviFiguruNaMesto(T1,TNOVA,'O',ROWSTART,COLSTART).
+/*pomeriSaPocetnogNaKrajnjePolje([],[],_,_,_,_,_,0):-!.
+*pomeriSaPocetnogNaKrajnjePolje([G|R], [G1|R1], F, ROWSTART, COLSTART, ROWEND, COLEND, RED):-
+*    obidjiRed(G, G1, RED, 1, F, ROWSTART, COLSTART, ROWEND, COLEND), RED1 is RED - 1,
+*    pomeriSaPocetnogNaKrajnjePolje(R, R1, F, ROWSTART, COLSTART, ROWEND, COLEND, RED1).
+*
+*obidjiRed([],[],_,9,_,_,_,_,_):-!.
+*obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
+*    proveriPocetnoIliKrajnje(F, RED, KOLONA, ROWSTART, COLSTART, ROWEND, COLEND, G, G1),
+*    KOLONA1 is KOLONA+1, obidjiRed(R, R1, RED, KOLONA1, F, ROWSTART,COLSTART,ROWEND,COLEND).
+*
+*proveriPocetnoIliKrajnje(_, RED, KOLONA, RED, KOLONA, _, _, _, 'O'):-!.
+*proveriPocetnoIliKrajnje(F, RED, KOLONA, _, _, RED, KOLONA, _, F):-!.
+*proveriPocetnoIliKrajnje(_, _, _, _, _, _, _, G, G).
+*/
 /*nadjiFiguruNaDatojPoziciji- vraca figuru koja se nalazi na datoj poziciji u tabli
   prvo nadjemo red koji se nalazi na poziciji 8-RED+1(jer nam je u tabli 8. red na pocetku itd.),
   zatim u tom redu nalzimo elemenat na poziciji KOLONA i to je upravo trazena figura
@@ -189,7 +188,7 @@ poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, X):- ( ==(X,'b');==(X
 
 poljaNaPutuSuPrazna(T, 7, COL, 5, COL, 'P'):- nadjiFiguruNaDatojPoziciji(T,6,COL,'O'), !.
 poljaNaPutuSuPrazna(T, 2, COL, 4, COL, 'p'):- nadjiFiguruNaDatojPoziciji(T,3,COL,'O'), !.
-poljaNaPutuSuPrazna(_, RED1, _, RED2, _, X):- abs(RED2-RED1) =:= 1,( ==(X,'p'),==(X,'P')).
+poljaNaPutuSuPrazna(_, RED1, _, RED2, _, X):- abs(RED2-RED1) =:= 1,( ==(X,'p');==(X,'P')).
 
 protrciKrozPut(_,X,Y,X,Y,_,_):-!.
 protrciKrozPut(T,ROWCURR,COLCURR,ROWEND,COLEND,DX,DY):-
