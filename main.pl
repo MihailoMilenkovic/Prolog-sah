@@ -1,6 +1,8 @@
 /*igraj- ispisuje tablu i vraca true ako je moguca data lista poteza, a inace vraca false*/
 /*podrazumeva se da je lista poteza zapisana u validnoj  sahovskoj notaciji 
  * primer: ["f2f4","e7e5","g2g4","Qd8h4#"]*/
+odigrajPartiju(L):-
+    igraj(L,_).
 igraj(L,T):-
     obrni(L,LOBR),
     nadjiTablu(LOBR,T,_),
