@@ -209,7 +209,7 @@ daLiJede(T, _, ROWEND, COLEND, S):- not(daLiJeUPotezu('x', S)), nadjiFiguruNaDat
 
 %sahovi
 daLiJeSah(T, LISTAOGRANICENJA, P):- daLiJeUPotezu('+', LISTAOGRANICENJA),kraljJeNapadnut(T,P).
-daLiJeSah(T, LISTAOGRANICENJA, P):- not(daLiJeUPotezu('+', LISTAOGRANICENJA)),not(kraljJeNapadnut(T,P)).
+daLiJeSah(_, LISTAOGRANICENJA, _):- not(daLiJeUPotezu('+', LISTAOGRANICENJA)).
 kraljJeNapadnut(T,P):-P mod 2=:=1,proveriDaLiJeNapadnut('K',1,T).
 kraljJeNapadnut(T,P):-P mod 2=:=0,proveriDaLiJeNapadnut('k',2,T).
 /*proverava da li je kralj napadnut od strane protivnickih figura
@@ -217,12 +217,14 @@ kraljJeNapadnut(T,P):-P mod 2=:=0,proveriDaLiJeNapadnut('k',2,T).
  * 2)za dato mesto proverava da li postoji figura suprotne boje koja moze da dodje na to polje u sledecem potezu
  * */
 proveriDaLiJeNapadnut(F,BOJANAPADACA,T):-
-    nadjiMestoUTabli(F,T,8,1,ROW,COL),nadjiDaLiJeNapadnut(T, 8, ROW,COL,BOJANAPADACA,T).%itd
-/*nadjiMestoUTabli-nalazi mesto figure F u trenutnoj tabli(ako ih ima vise vraca samo prvo ponavljanje
+    nadjiMestoGdeJeFigura(F,T,ROW,COL),proveriDaLiJeNapadnut(T,ROW,COL,BOJANAPADACA).%itd
+/*nadjiMestoGdeJeFigura-nalazi mesto figure F u trenutnoj tabli(ako ih ima vise vraca samo prvo ponavljanje
  * (namenjeno da se koristi samo za kralja, gde moze biti samo jedno ponavljlanje)
  * prolazi red po red i kroz svaki red polje po polje,sve dok se ne nadje data figura
  * (figura bi trebala uvek da bude nadjena u slucaju kralja, za ostale figure se moze desiti beskonacna petlja, ako se data figura ne nadje
  * */
+nadjiMestoGdeJeFigura(F,T,ROW,COL):-
+    nadjiMestoUTabli(F,T,8,1,ROW,COL).
 nadjiMestoUTabli(F,[G|_],TRENUTNIRED,1,TRENUTNIRED,TRAZENAKOLONA):-
     nadjiMestoURedu(F,G,1,TRAZENAKOLONA),!.
 nadjiMestoUTabli(F,[_|R],TRENUTNIRED,1,TRAZENIRED,TRAZENAKOLONA):-
@@ -237,6 +239,8 @@ nadjiMestoURedu(F,[_|R],TRENUTNAKOLONA,TRAZENAKOLONA):-
  * 3)proverava da li su polja na putu prazna
  * ako ovi uslovi vaze, kralj je napadnut,a u suprotnom nije
  * */
+proveriDaLiJeNapadnut(T,ROW,COL,BOJANAPADACA):-
+    nadjiDaLiJeNapadnut(T,8,ROW,COL,BOJANAPADACA,T).
 nadjiDaLiJeNapadnut([G|_], TRENUTNIRED, ROW, COL, BOJANAPADACA, T):-
     nadjiDaLiJeNapadnutURedu(T, G, TRENUTNIRED, 1, ROW, COL, BOJANAPADACA), !.
 nadjiDaLiJeNapadnut([_|R], TRENUTNIRED, ROW, COL, BOJANAPADACA, T):-
@@ -245,6 +249,8 @@ nadjiDaLiJeNapadnutURedu(T,[F|_], TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, BOJANAP
     boja(F, BOJANAPADACA),
     okPotez(F,TRENUTNIRED,TRENUTNAKOLONA,ROW,COL),
     poljaNaPutuSuPrazna(T, TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, F),!.
+nadjiDaLiJeNapadnutURedu(T,[_|R],TRENUTNIRED,TRENUTNAKOLONA,ROW,COL,BOJANAPADACA):-
+    NOVAKOLONA is TRENUTNAKOLONA+1,nadjiDaLiJeNapadnutURedu(T,R,TRENUTNIRED,NOVAKOLONA,ROW,COL,BOJANAPADACA).
 %postaviFiguruNaMesto-postavlja figuru F na polje (TRAZENIRED,TRAZENAKOLONA) u tabli TSTARA i vraca tablu TNOVA
 postaviFiguruNaMesto(TSTARA,TNOVA,F,TRAZENIRED,TRAZENAKOLONA):-
     postaviFiguru(TSTARA,TNOVA,F,TRAZENIRED,TRAZENAKOLONA,8).
