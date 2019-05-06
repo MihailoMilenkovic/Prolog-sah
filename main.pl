@@ -60,20 +60,32 @@ odigrajPotez('O-O-O',TSTARA,TNOVA,P):-
     P mod 2=:=0,proveriUsloveZaVelikuRokadu(TSTARA,1,'k','r'),odigrajVelikuRokadu(TSTARA,1,TNOVA,'k','r'),!.
 odigrajPotez('O-O-O',TSTARA,TNOVA,P):-
     P mod 2=:=1,proveriUsloveZaVelikuRokadu(TSTARA,8,'K','R'),odigrajVelikuRokadu(TSTARA,8,TNOVA,'K','R'),!.
-/*uslovi su za sad da su figure na ok poljima(kralj i top na pocetnim poljima i nema nista izmedju
- * (pravi uslovi su da su sva polja izmedju kraljeve pocetne i krajnje pozicije sigurna i da se ni kralj ni top kojim vrsimo rokadu nisu kretali cele partije)
+/*uslovi su za sad da su figure na ok poljima (kralj i top na pocetnim poljima i nema nista izmedju)
+ * uslovi za rokadu:
+ * 1)polja izmedju kralja i topa su prazna
+ * 2)kralj i top su na pocetnim pozicijama, tj. nisu se pomerali cele partije
+ * (ovaj deo je komplikovaniji, jer treba videti poteze od ranije, se ovde samo proverava da li su na startnim pozicijama)
+ * 3)polja izmedju i ukljucujuci kraljevo pocetno i krajnje nisu napadnuta
  * */
 proveriUsloveZaMaluRokadu(T,RED,KRALJ,TOP):-
+    boja(KRALJ,BOJA),BOJANAPADACA is 3-BOJA,
     nadjiFiguruNaDatojPoziciji(T,RED,5,KRALJ),
     nadjiFiguruNaDatojPoziciji(T,RED,6,'O'),
     nadjiFiguruNaDatojPoziciji(T,RED,7,'O'),
-    nadjiFiguruNaDatojPoziciji(T,RED,8,TOP).
+    nadjiFiguruNaDatojPoziciji(T,RED,8,TOP),
+    not(proveriDaLiJeNapadnut(T,RED,5,BOJANAPADACA)),
+    not(proveriDaLiJeNapadnut(T,RED,6,BOJANAPADACA)),
+    not(proveriDaLiJeNapadnut(T,RED,7,BOJANAPADACA)).
 proveriUsloveZaVelikuRokadu(T,RED,KRALJ,TOP):-
+    boja(KRALJ,BOJA),BOJANAPADACA is 3-BOJA,
     nadjiFiguruNaDatojPoziciji(T,RED,5,KRALJ),
     nadjiFiguruNaDatojPoziciji(T,RED,4,'O'),
     nadjiFiguruNaDatojPoziciji(T,RED,3,'O'),
     nadjiFiguruNaDatojPoziciji(T,RED,2,'O'),
-    nadjiFiguruNaDatojPoziciji(T,RED,1,TOP).
+    nadjiFiguruNaDatojPoziciji(T,RED,1,TOP),
+    not(proveriDaLiJeNapadnut(T,RED,5,BOJANAPADACA)),
+    not(proveriDaLiJeNapadnut(T,RED,4,BOJANAPADACA)),
+    not(proveriDaLiJeNapadnut(T,RED,3,BOJANAPADACA)).
 /*rokadu igramo tako sto upsiujemo i topa na njihove krajnje pozicije, a stavljamo prazna polja na nijhove pocetne)
  * */
 odigrajMaluRokadu(TSTARA,RED,TNOVA,KRALJ,TOP):-
