@@ -47,6 +47,46 @@ nadjiTablu([G|R],T,P):-
     6)pomeramo figuru sa pocetnog na krajnje polje
     7)proverimo posebne slucajeve poteza(sahove,promocije)
     8)proverimo da kralj boje koja je upravo igrala nije napadnut nakon igranja poteza*/
+/*poseban slucaj poteza-mala/velika rokada.
+ * mala rokada je obelezena sa 'O-O',a velika sa 'O-O-O'
+ * za malu prvo proveravaom uslove, a onda menjamo tablu i analogno za veliku.
+ * kada obradimo rokadu ide rez, jer ne obradjujemo uslove kao za ostale poteze
+ * */
+odigrajPotez('O-O',TSTARA,TNOVA,P):-
+    P mod 2=:=0,proveriUsloveZaMaluRokadu(TSTARA,1,'k','r'),odigrajMaluRokadu(TSTARA,1,TNOVA,'k','r'),!.
+odigrajPotez('O-O',TSTARA,TNOVA,P):-
+    P mod 2=:=1,proveriUsloveZaMaluRokadu(TSTARA,8,'K','R'),odigrajMaluRokadu(TSTARA,8,TNOVA,'K','R'),!.
+odigrajPotez('O-O-O',TSTARA,TNOVA,P):-
+    P mod 2=:=0,proveriUsloveZaVelikuRokadu(TSTARA,1,'k','r'),odigrajVelikuRokadu(TSTARA,1,TNOVA,'k','r'),!.
+odigrajPotez('O-O-O',TSTARA,TNOVA,P):-
+    P mod 2=:=1,proveriUsloveZaVelikuRokadu(TSTARA,8,'K','R'),odigrajVelikuRokadu(TSTARA,8,TNOVA,'K','R'),!.
+/*uslovi su za sad da su figure na ok poljima(kralj i top na pocetnim poljima i nema nista izmedju
+ * (pravi uslovi su da su sva polja izmedju kraljeve pocetne i krajnje pozicije sigurna i da se ni kralj ni top kojim vrsimo rokadu nisu kretali cele partije)
+ * */
+proveriUsloveZaMaluRokadu(T,RED,KRALJ,TOP):-
+    nadjiFiguruNaDatojPoziciji(T,RED,5,KRALJ),
+    nadjiFiguruNaDatojPoziciji(T,RED,6,'O'),
+    nadjiFiguruNaDatojPoziciji(T,RED,7,'O'),
+    nadjiFiguruNaDatojPoziciji(T,RED,8,TOP).
+proveriUsloveZaVelikuRokadu(T,RED,KRALJ,TOP):-
+    nadjiFiguruNaDatojPoziciji(T,RED,5,KRALJ),
+    nadjiFiguruNaDatojPoziciji(T,RED,4,'O'),
+    nadjiFiguruNaDatojPoziciji(T,RED,3,'O'),
+    nadjiFiguruNaDatojPoziciji(T,RED,2,'O'),
+    nadjiFiguruNaDatojPoziciji(T,RED,1,TOP).
+/*rokadu igramo tako sto upsiujemo i topa na njihove krajnje pozicije, a stavljamo prazna polja na nijhove pocetne)
+ * */
+odigrajMaluRokadu(TSTARA,RED,TNOVA,KRALJ,TOP):-
+    postaviFiguruNaMesto(TSTARA,T1,'O',RED,5),
+    postaviFiguruNaMesto(T1,T2,TOP,RED,6),
+    postaviFiguruNaMesto(T2,T3,KRALJ,RED,7),
+    postaviFiguruNaMesto(T3,TNOVA,'O',RED,8).
+odigrajVelikuRokadu(TSTARA,RED,TNOVA,KRALJ,TOP):-
+    postaviFiguruNaMesto(TSTARA,T1,'O',RED,5),
+    postaviFiguruNaMesto(T1,T2,TOP,RED,4),
+    postaviFiguruNaMesto(T2,T3,KRALJ,RED,3),
+    postaviFiguruNaMesto(T3,T4,'O',RED,2),
+    postaviFiguruNaMesto(T4,TNOVA,'O',RED,1).
 odigrajPotez(S,TSTARA,TNOVA, P):-
     /*dodaj za rokadu*/
     string_chars(S,C),
