@@ -57,23 +57,24 @@ odigrajPotez(S,TSTARA,TNOVA, P):-
     nadjiPolje(C3,COLEND,ROWEND,C4),/*krajnje polje*/
     nadjiPolje(C4,COLSTART,ROWSTART,OGRANICENJA),/*pocetno polje*/
     proveriOgranicenja(OGRANICENJA,TSTARA,F,ROWSTART,COLSTART,ROWEND,COLEND),
-    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND/*, 8*/),
+    pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND),
     izmeniTabluAkoJePromocija(TNOVA1,TNOVA,F,ROWEND,COLEND),
     proveriDaLiJeSah(TNOVA,OGRANICENJA,P),
     PNOVI is P+1,
     not(kraljJeNapadnut(TNOVA,PNOVI)).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
+ * (figura je uvek zadata vilikim slovima)
   1)ako je prvo slovo notacije neka od figura nju pomeramo
   2)inace figura koja treba da se pomeri je pesak
   nakon pronalazenja figure brise se odgovarajuci znak iz stringa*/
 nadjiFiguru([G|R],G, R):-(==(G,'R');==(G,'N');==(G,'B');==(G,'Q');==(G,'K')),!.
 nadjiFiguru(C,'P', C).
-/*ako je potez paran, prebacujemo figuru u malo slovo
- Da li igra beli ili crni*/
+/*nadji igraca-menja dobijenu figuru u malo slovoako je potez paran, a inace ostavlja veliko 
+ ako znamo da li je figura mala ili velika, znamo koji igrac je na redu*/
 nadjiIgraca(F2, P, F2):- P mod 2 =\= 0.
 nadjiIgraca(F2, P, F):- P mod 2 =:= 0, char_code('a', ROA), char_code('A', ROCA), DIF is ROA - ROCA, 
     					char_code(F2, FIG2), FIG is FIG2 + DIF, char_code(F, FIG).
-/*nalazi polje u potezu i brise ga iz poteza
+/*nadjiPolje-nalazi polje u potezu i brise ga iz poteza
  * posto se u sahovskoj notaciji prvo nadovdi slovo pa broj za neko polje a listu obrcemo,
  *  kada naidjemo na broj na intervalu [1,8] vratimo njega i karakter posle, koje zatim pretvaramo u brojeve*/
 nadjiPolje([G1,G2|X],ROWEND,COLEND,X):-
@@ -83,13 +84,14 @@ nadjiPolje([G|R],ROWEND,COLEND,[G|R1]):-nadjiPolje(R,ROWEND,COLEND,R1).
 pretvoriUBrojeve(BR,CH,COLEND,ROWEND):-
     char_code(CH,ROX),char_code('a',ROA),ROWEND is ROX-ROA+1,
     char_code(BR,COX),char_code('1',CO1),COLEND is COX-CO1+1.
-/*proveriOgranicenja:za neki potez proverava da li je validan
-  potez je validan ako zadovoljava sledece uslove:
+/*proveriOgranicenja:za neki potez proverava ogranicenja koja vaze PRE IGRANJA TOG POTEZA
+  potez igramo ako zadovoljava sledece uslove:
   1)pocetno polje ima figuru kojom se navodi da igramo
   2)krajnje polje nema figuru iste boje
   3)datom figurom se moze stici od pocetnog do krajnjeg polja
   4)polja na putu od pocetnog do krajnjeg su sva prazna
-  5)ostala ogranicenja vaze
+  5)ako je figura na krajnjem polju suprotne boje, u notaciji se pojavljuje x, a u suprotnom ne sme da se pojavi x
+  ogranicenja posle igranja poteza proveravamo u odigrajPotez,A NE OVDE
  * */
 proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND):-
     pocetnoPoljeImaDatuFiguru(T,F,ROWSTART,COLSTART),
@@ -98,11 +100,11 @@ proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND):-
     poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, F),
     daLiJede(T, F, ROWEND, COLEND, LISTAOGRANICENJA).
 /*okPotez-vraca true ako figura moze da dodje sa pocetnog na krajnje polje na praznoj tabli
- *proveravamo da li su pocetno i krajnje polje razliciti i prvalia za kretanjee svake od figura(funkcija mozeDaDodje)*/
+ *proveravamo da li su pocetno i krajnje polje razliciti i pravila za kretanjee svake od figura(funkcija mozeDaDodje)*/
 okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND):-
     (ROWEND=\=ROWSTART;COLEND=\=COLSTART), %format('figura je:~a\n a polja ~a ~a ~a ~a',[F,ROWSTART,COLSTART,ROWEND,COLEND]),
     mozeDaDodje(F,ROWSTART,COLSTART,ROWEND,COLEND).
-/*mozeDaDodje(F,xen,yen,xst,yst)- proverava da li figura F moze da dodje iz sa pocetnog na krajnje polje u jednom potezu*/
+/*mozeDaDodje proverava da li figura F moze da dodje iz sa pocetnog na krajnje polje u jednom potezu*/
 /*kraljica: moze da dodje na neko polje ako to moze lovac ili top */
 mozeDaDodje('q',ROWSTART,COLSTART,ROWEND,COLEND):-
    	mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND).
@@ -114,7 +116,7 @@ mozeDaDodje('r',ROWSTART,COLSTART,ROWEND,COLEND):-
     mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND).
 mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND):-
     (   ROWEND=:=ROWSTART;COLEND=:=COLSTART).
-/*lovac: moze da dodje na neko polje ako su pocetno i startno na istoj dijagonali.
+/*lovac: moze da dodje na neko polje ako su pocetno i krajnje na istoj dijagonali.
   Neka 2 polja su na istoj dijagonali akko je zbir ili razlika koordinata tih polja jednaka*/
 mozeDaDodje('b',ROWSTART,COLSTART,ROWEND,COLEND):-
     mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND).
@@ -147,20 +149,6 @@ mozeDaDodje('P',ROWSTART,COLSTART,ROWEND,COLEND):-
 /*pomeriSaPocetnogNaKrajnjePolje-na pocetno polje upisujemo 'O',a na krajnje figuru kojom igramo*/
 pomeriSaPocetnogNaKrajnjePolje(TSTARA, TNOVA, F, ROWSTART, COLSTART, ROWEND, COLEND):-
     postaviFiguruNaMesto(TSTARA,T1,F,ROWEND,COLEND),postaviFiguruNaMesto(T1,TNOVA,'O',ROWSTART,COLSTART).
-/*pomeriSaPocetnogNaKrajnjePolje([],[],_,_,_,_,_,0):-!.
-*pomeriSaPocetnogNaKrajnjePolje([G|R], [G1|R1], F, ROWSTART, COLSTART, ROWEND, COLEND, RED):-
-*    obidjiRed(G, G1, RED, 1, F, ROWSTART, COLSTART, ROWEND, COLEND), RED1 is RED - 1,
-*    pomeriSaPocetnogNaKrajnjePolje(R, R1, F, ROWSTART, COLSTART, ROWEND, COLEND, RED1).
-*
-*obidjiRed([],[],_,9,_,_,_,_,_):-!.
-*obidjiRed([G|R], [G1|R1], RED, KOLONA, F, ROWSTART,COLSTART,ROWEND,COLEND):-
-*    proveriPocetnoIliKrajnje(F, RED, KOLONA, ROWSTART, COLSTART, ROWEND, COLEND, G, G1),
-*    KOLONA1 is KOLONA+1, obidjiRed(R, R1, RED, KOLONA1, F, ROWSTART,COLSTART,ROWEND,COLEND).
-*
-*proveriPocetnoIliKrajnje(_, RED, KOLONA, RED, KOLONA, _, _, _, 'O'):-!.
-*proveriPocetnoIliKrajnje(F, RED, KOLONA, _, _, RED, KOLONA, _, F):-!.
-*proveriPocetnoIliKrajnje(_, _, _, _, _, _, _, G, G).
-*/
 /*nadjiFiguruNaDatojPoziciji- vraca figuru koja se nalazi na datoj poziciji u tabli
   prvo nadjemo red koji se nalazi na poziciji 8-RED+1(jer nam je u tabli 8. red na pocetku itd.),
   zatim u tom redu nalzimo elemenat na poziciji KOLONA i to je upravo trazena figura
@@ -212,23 +200,37 @@ protrciKrozPut(T,ROWCURR,COLCURR,ROWEND,COLEND,DX,DY):-
     ROWNEW is ROWCURR + DX, COLNEW is COLCURR + DY,
     protrciKrozPut(T,ROWNEW, COLNEW, ROWEND, COLEND, DX, DY).
 
-
-%ostala ogranicenja
+/*daLiJeUPotezu- proverava da li se neki elemenat nalazi u listi
+ * lista za koju proveravamo je lista koju smo dobili brisanjem pocetnog, krajnjeg polja i figure iz poteza(lista ogranicenja)
+ * u listi se mogu nalaziti
+ *  x-jedenje
+ *  +-sah
+ * (=,tj. promocija se ne pojavljuje, jer koristimo auto-queen(tj. pesaka pretvaramo u kraljicu ukoliko dodje do kraja table)
+ * */
 
 daLiJeUPotezu(C, [C|_]):-!.
 daLiJeUPotezu(C, [_|R]):-daLiJeUPotezu(C, R).
 
-%da li je jedenje
+/*1)ako se u potezu pojavljuje x, na krajnjem polju mora biti figura suprotne boje
+ * kako je boja belih figura 1, a crnih 2, dooljno je proveriti da je zbir boja figure kojom igramo i figure na krajnjem polju 3
+ * 2)ako se u potezu ne pojavljuje x, krajnje polje mora biti slobodno(ne moze biti figura iste boje nikad, a posto nema x u listi, ne moze biti ni suprotne boje)
+ * */
 daLiJede(T, F, ROWEND, COLEND, S):- daLiJeUPotezu('x', S), 
     nadjiFiguruNaDatojPoziciji(T, ROWEND, COLEND, F2), boja(F, X), boja(F2, Y), Z is X+Y, Z =:= 3.
 daLiJede(T, _, ROWEND, COLEND, S):- not(daLiJeUPotezu('x', S)), nadjiFiguruNaDatojPoziciji(T, ROWEND, COLEND, 'O').
 
-%sahovi
+/*proveri daLiJeSah-pozivamo nakon igranja poteza
+ * 1)ako je u listi ogranicenja + ,protivnicki kralj mora biti napadnut
+ * 2)ako u listi ogranicenja nije +, protivnicki kralj ne sme biti napadnut
+ * */
 proveriDaLiJeSah(T, LISTAOGRANICENJA, P):- daLiJeUPotezu('+', LISTAOGRANICENJA),kraljJeNapadnut(T,P).
 proveriDaLiJeSah(T, LISTAOGRANICENJA, P):- not(daLiJeUPotezu('+', LISTAOGRANICENJA)),not(kraljJeNapadnut(T,P)).
+/*kraljJeNapadnut-
+ * 1)ako je potez paran beli igra, pa je boja napadaca 1 i protivnicki kralj je 'K'
+ * 2)ako je potez neparan crni igra, pa je boja napadaca 2 i protivnicki kralj je 'k'*/
 kraljJeNapadnut(T,P):-P mod 2=:=0,proveriDaLiJeNapadnut('K',1,T).
 kraljJeNapadnut(T,P):-P mod 2=:=1,proveriDaLiJeNapadnut('k',2,T).
-/*proverava da li je kralj napadnut od strane protivnickih figura
+/*proveriDaLiJeNapadnut-proverava da li je kralj napadnut od strane protivnickih figura
  * 1)prvo nalazi kraljevo mesto u tabli
  * 2)za dato mesto proverava da li postoji figura suprotne boje koja moze da dodje na to polje u sledecem potezu
  * */
@@ -237,7 +239,7 @@ proveriDaLiJeNapadnut(F,BOJANAPADACA,T):-
 /*nadjiMestoGdeJeFigura-nalazi mesto figure F u trenutnoj tabli(ako ih ima vise vraca samo prvo ponavljanje
  * (namenjeno da se koristi samo za kralja, gde moze biti samo jedno ponavljlanje)
  * prolazi red po red i kroz svaki red polje po polje,sve dok se ne nadje data figura
- * (figura bi trebala uvek da bude nadjena u slucaju kralja, za ostale figure se moze desiti beskonacna petlja, ako se data figura ne nadje
+ * (figura bi trebala uvek da bude nadjena u slucaju kralja, za ostale figure se moze desiti beskonacna petlja, ako se data figura ne nadje)
  * */
 nadjiMestoGdeJeFigura(F,T,ROW,COL):-
     nadjiMestoUTabli(F,T,8,1,ROW,COL).
@@ -253,7 +255,7 @@ nadjiMestoURedu(F,[_|R],TRENUTNAKOLONA,TRAZENAKOLONA):-
  * 1)da li je boja figure na tom polju suprotna boji figure koja se napada
  * 2)da li figura moze da dodje sa tog polja do kralja(okPotez)
  * 3)proverava da li su polja na putu prazna
- * ako ovi uslovi vaze, kralj je napadnut,a u suprotnom nije
+ * kralj je napadnut akko za bilo koje polje vaze ovi uslovi
  * */
 proveriDaLiJeNapadnut(T,ROW,COL,BOJANAPADACA):-
     nadjiDaLiJeNapadnut(T,8,ROW,COL,BOJANAPADACA,T).
