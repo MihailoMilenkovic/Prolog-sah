@@ -13,7 +13,7 @@ obrni(L,LO):-
 obrni1([],LO,LO).
 obrni1([G|R],LO,A):-obrni1(R,LO,[G|A]).
 /*broj elem u listi*/
-count([],0).
+count([],1).
 count([_|R],N) :- count(R,N1) , N is N1+1.
 /*ispisivanje table -red po red, svaki red element po element
  * isisivanje radimo pomocu ugradjene funkcije format, gde se atom ispisuje kao ~a, a kraj reda kao ~n*/
@@ -112,6 +112,7 @@ odigrajPotez(S,TSTARA,TNOVA, P):-
     pomeriSaPocetnogNaKrajnjePolje(TSTARA,TNOVA1,F,ROWSTART,COLSTART,ROWEND,COLEND),
     izmeniTabluAkoJePromocija(TNOVA1,TNOVA,F,ROWEND,COLEND),
     proveriDaLiJeSah(TNOVA,OGRANICENJA,P),
+    proveriDaLiJeMat(TNOVA,OGRANICENJA,P),
     PNOVI is P+1,
     not(kraljJeNapadnut(TNOVA,PNOVI)).
 /*nadjiFiguru- nalazi tip figure koji treba da se pomeri
@@ -148,43 +149,43 @@ pretvoriUBrojeve(BR,CH,COLEND,ROWEND):-
 proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND):-
     pocetnoPoljeImaDatuFiguru(T,F,ROWSTART,COLSTART),
     krajnjePoljeNemaFiguruIsteBoje(T,F,ROWEND,COLEND),
-    okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND),
+    okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND,T),
     poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, F),
     daLiJede(T, F, ROWEND, COLEND, LISTAOGRANICENJA).
 /*okPotez-vraca true ako figura moze da dodje sa pocetnog na krajnje polje na praznoj tabli
  *proveravamo da li su pocetno i krajnje polje razliciti i pravila za kretanjee svake od figura(funkcija mozeDaDodje)*/
-okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND):-
+okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND,T):-
     (ROWEND=\=ROWSTART;COLEND=\=COLSTART), %format('figura je:~a\n a polja ~a ~a ~a ~a',[F,ROWSTART,COLSTART,ROWEND,COLEND]),
-    mozeDaDodje(F,ROWSTART,COLSTART,ROWEND,COLEND).
+    mozeDaDodje(F,ROWSTART,COLSTART,ROWEND,COLEND,T).
 /*mozeDaDodje proverava da li figura F moze da dodje iz sa pocetnog na krajnje polje u jednom potezu*/
 /*kraljica: moze da dodje na neko polje ako to moze lovac ili top */
-mozeDaDodje('q',ROWSTART,COLSTART,ROWEND,COLEND):-
-   	mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND).
-mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND):-
-	(mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND);
-    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND)).
+mozeDaDodje('q',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+   	mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND,_).
+mozeDaDodje('Q',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+	(mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND,_);
+    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND,_)).
 /*top: moze da dodje na neko polje ako su vrste ili kolone jednake*/
-mozeDaDodje('r',ROWSTART,COLSTART,ROWEND,COLEND):-
-    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND).
-mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND):-
+mozeDaDodje('r',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+    mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND,_).
+mozeDaDodje('R',ROWSTART,COLSTART,ROWEND,COLEND,_):-
     (   ROWEND=:=ROWSTART;COLEND=:=COLSTART).
 /*lovac: moze da dodje na neko polje ako su pocetno i krajnje na istoj dijagonali.
   Neka 2 polja su na istoj dijagonali akko je zbir ili razlika koordinata tih polja jednaka*/
-mozeDaDodje('b',ROWSTART,COLSTART,ROWEND,COLEND):-
-    mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND).
-mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND):-
+mozeDaDodje('b',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+    mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND,_).
+mozeDaDodje('B',ROWSTART,COLSTART,ROWEND,COLEND,_):-
     ZB1 is ROWEND+COLEND,ZB2 is ROWSTART+COLSTART,RAZL1 is ROWEND-COLEND,RAZL2 is ROWSTART-COLSTART,
     (   ZB1=:=ZB2;RAZL1=:=RAZL2).
 /*kralj: moze da dodje na neko polje ako je razlika apsolutnih vresnosti vrsta <=1 i razlika apsolutnih vresnosti kolona <=1*/
-mozeDaDodje('k',ROWSTART,COLSTART,ROWEND,COLEND):-
-    mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND).
-mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND):-
+mozeDaDodje('k',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+    mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND,_).
+mozeDaDodje('K',ROWSTART,COLSTART,ROWEND,COLEND,_):-
     R1 is ROWEND-ROWSTART,R2 is COLEND-COLSTART,
     abs(R1)=<1,abs(R2)=<1.
 /*konj: moze da dodje na neko polje ako je razlika apsloutnih vrednosti vrsta 1, a kolona 2 ili razlika apsloutnih vrednosti vrsta 2, a kolona 1*/
-mozeDaDodje('n',ROWSTART,COLSTART,ROWEND,COLEND):-
-    mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND).
-mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND):-
+mozeDaDodje('n',ROWSTART,COLSTART,ROWEND,COLEND,_):-
+    mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND,_).
+mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND,_):-
     R1 is ROWEND-ROWSTART,R2 is COLEND-COLSTART,
     (   (abs(R1)=:=1,abs(R2)=:=2);(abs(R1)=:=2,abs(R2)=:=1)  ) .
 /*pesak: 2 slucaja:
@@ -192,12 +193,15 @@ mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND):-
   	Inace moze na 1 vrstu vise, ako je apsolutna razlika kolona<=1. 
   2)crni:ako je na vrsti 7 moze da dodje na vrstu 5 i istu kolonu.
   	Inace moze na 1 vrstu nize, ako je aposolutna razlika kolona<=1.*/
-mozeDaDodje('p',2,X,4,X).
-mozeDaDodje('p',ROWSTART,COLSTART,ROWEND,COLEND):-
-    ROWS is ROWEND-1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
-mozeDaDodje('P',7,X,5,X).
-mozeDaDodje('P',ROWSTART,COLSTART,ROWEND,COLEND):-
-    ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1.
+mozeDaDodje('p',2,X,4,X,T):-nadjiFiguruNaDatojPoziciji(T,4,X,'O').
+mozeDaDodje('p',ROWSTART,COLSTART,ROWEND,COLEND,T):-
+    ROWS is ROWEND-1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1,krajnjePoljeNijePraznoAkoIdeDijagonalno(T,COLSTART,ROWEND,COLEND).
+mozeDaDodje('P',7,X,5,X,T):-nadjiFiguruNaDatojPoziciji(T,5,X,'O').
+mozeDaDodje('P',ROWSTART,COLSTART,ROWEND,COLEND,T):-
+    ROWS is ROWEND+1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1,krajnjePoljeNijePraznoAkoIdeDijagonalno(T,COLSTART,ROWEND,COLEND).
+krajnjePoljeNijePraznoAkoIdeDijagonalno(T,COL,ROWEND,COL):-nadjiFiguruNaDatojPoziciji(T,ROWEND,COL,'O').
+krajnjePoljeNijePraznoAkoIdeDijagonalno(T,COLSTART,ROWEND,COLEND):-
+    COLSTART=\=COLEND,nadjiFiguruNaDatojPoziciji(T,ROWEND,COLEND,F),not(==(F,'O')).
 /*pomeriSaPocetnogNaKrajnjePolje-na pocetno polje upisujemo 'O',a na krajnje figuru kojom igramo*/
 pomeriSaPocetnogNaKrajnjePolje(TSTARA, TNOVA, F, ROWSTART, COLSTART, ROWEND, COLEND):-
     postaviFiguruNaMesto(TSTARA,T1,F,ROWEND,COLEND),postaviFiguruNaMesto(T1,TNOVA,'O',ROWSTART,COLSTART).
@@ -276,8 +280,8 @@ daLiJede(T, _, ROWEND, COLEND, S):- not(daLiJeUPotezu('x', S)), nadjiFiguruNaDat
  * 1)ako je u listi ogranicenja + ,protivnicki kralj mora biti napadnut
  * 2)ako u listi ogranicenja nije +, protivnicki kralj ne sme biti napadnut
  * */
-proveriDaLiJeSah(T, LISTAOGRANICENJA, P):- daLiJeUPotezu('+', LISTAOGRANICENJA),kraljJeNapadnut(T,P).
-proveriDaLiJeSah(T, LISTAOGRANICENJA, P):- not(daLiJeUPotezu('+', LISTAOGRANICENJA)),not(kraljJeNapadnut(T,P)).
+proveriDaLiJeSah(T, LISTAOGRANICENJA, P):- (   daLiJeUPotezu('+', LISTAOGRANICENJA);daLiJeUPotezu('#', LISTAOGRANICENJA)),kraljJeNapadnut(T,P).
+proveriDaLiJeSah(T, LISTAOGRANICENJA, P):-not(daLiJeUPotezu('+', LISTAOGRANICENJA)),not(daLiJeUPotezu('#', LISTAOGRANICENJA)),not(kraljJeNapadnut(T,P)).
 /*kraljJeNapadnut-
  * 1)ako je potez paran beli igra, pa je boja napadaca 1 i protivnicki kralj je 'K'
  * 2)ako je potez neparan crni igra, pa je boja napadaca 2 i protivnicki kralj je 'k'*/
@@ -318,7 +322,7 @@ nadjiDaLiJeNapadnut([_|R], TRENUTNIRED, ROW, COL, BOJANAPADACA, T):-
     NOVIRED is TRENUTNIRED - 1, nadjiDaLiJeNapadnut(R, NOVIRED,ROW,COL,BOJANAPADACA, T).
 nadjiDaLiJeNapadnutURedu(T,[F|_], TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, BOJANAPADACA):-
     boja(F, BOJANAPADACA),
-    okPotez(F,TRENUTNIRED,TRENUTNAKOLONA,ROW,COL),
+    okPotez(F,TRENUTNIRED,TRENUTNAKOLONA,ROW,COL,T),
     poljaNaPutuSuPrazna(T, TRENUTNIRED, TRENUTNAKOLONA, ROW, COL, F)/*,format("jeste u koloni~a~n tabla~n",TRENUTNAKOLONA),ispisiTablu(T)*/,!.
 nadjiDaLiJeNapadnutURedu(T,[_|R],TRENUTNIRED,TRENUTNAKOLONA,ROW,COL,BOJANAPADACA):-
     NOVAKOLONA is TRENUTNAKOLONA+1,nadjiDaLiJeNapadnutURedu(T,R,TRENUTNIRED,NOVAKOLONA,ROW,COL,BOJANAPADACA).
@@ -340,4 +344,44 @@ postaviFiguru([G|R], [G|R1], F, TRAZENIRED, TRAZENAKOLONA, TRENUTNIRED):-
 postaviFiguruURed([_|R],[F|R], F, TRAZENAKOLONA,TRAZENAKOLONA ):-!.
 postaviFiguruURed([G|R],[G|R1],F,TRAZENAKOLONA,TRENUTNAKOLONA):-
     NOVAKOLONA is TRENUTNAKOLONA+1,postaviFiguruURed(R,R1,F,TRAZENAKOLONA,NOVAKOLONA).
-    
+
+
+/*uslovi za mat:
+ * 1)kralj je napadnut
+ * 2)ne postoji koji protivnik moze da odigra, a da mu kralj ne bude napdnut
+ * */
+proveriDaLiJeMat(T,LISTAOGRANICENJA,P):- daLiJeUPotezu('#', LISTAOGRANICENJA),proveriUsloveZaMat(T,P).
+proveriDaLiJeMat(T,LISTAOGRANICENJA,P):-not(daLiJeUPotezu('#', LISTAOGRANICENJA)),not(proveriUsloveZaMat(T,P)).
+proveriUsloveZaMat(T,P):-kraljJeNapadnut(T,P),nePostojiPotez(T,P).
+%ako je beli igrao, crni treba da se pomeri i obrnuto
+nePostojiPotez(T,P):-P mod 2=:=0,not(postojiPotez(T,2,P)).
+nePostojiPotez(T,P):-P mod 2=:=1,not(postojiPotez(T,1,P)).
+/*postojiPotez-prolazimo kroz sve moguce parove pocetnog i krajnjeg polja i za svako proveravamo:
+ * 1)da li je figura na pocetnom polju dobre boje
+ * 2)da li je ok potez figure od pocetnog do krajnjeg polja
+ * 3)da li krajnje polje nema figuru iste boje
+ * 4)da li su polja n putu prazna
+ * ako ti uslovi vaze, pomeramo figuru sa pocetnog na krajnje polje i proveravamo da li je kralj napadnut
+ * ako u bilo kom slucaju kralj nije napadnut potez nije mat, a inace jeste
+ * */
+postojiPotez(T,BOJA,P):-
+    jePolje(ROWSTART,COLSTART),jePolje(ROWEND,COLEND),
+    nadjiFiguruNaDatojPoziciji(T,ROWSTART,COLSTART,F),
+    boja(F,BOJA),
+    okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND,T),
+    krajnjePoljeNemaFiguruIsteBoje(T,F,ROWEND,COLEND),
+    poljaNaPutuSuPrazna(T,ROWSTART,COLSTART,ROWEND,COLEND,F),
+    pomeriSaPocetnogNaKrajnjePolje(T,TNOVA,F,ROWSTART,COLSTART,ROWEND,COLEND),
+    not(kraljJeNapadnut(TNOVA,P)),!.
+jePolje(X,Y):-
+    okKoordinata(X),okKoordinata(Y).
+okKoordinata(1).
+okKoordinata(2).
+okKoordinata(3).
+okKoordinata(4).
+okKoordinata(5).
+okKoordinata(6).
+okKoordinata(7).
+okKoordinata(8).
+
+
