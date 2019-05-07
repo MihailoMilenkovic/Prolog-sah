@@ -152,7 +152,7 @@ proveriOgranicenja(LISTAOGRANICENJA,T,F,ROWSTART,COLSTART,ROWEND,COLEND):-
     okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND,T),
     poljaNaPutuSuPrazna(T, ROWSTART, COLSTART, ROWEND, COLEND, F),
     daLiJede(T, F, ROWEND, COLEND, LISTAOGRANICENJA).
-/*okPotez-vraca true ako figura moze da dodje sa pocetnog na krajnje polje na praznoj tabli
+/*okPotez-vraca true ako figura moze da dodje sa pocetnog na krajnje polje
  *proveravamo da li su pocetno i krajnje polje razliciti i pravila za kretanjee svake od figura(funkcija mozeDaDodje)*/
 okPotez(F,ROWSTART,COLSTART,ROWEND,COLEND,T):-
     (ROWEND=\=ROWSTART;COLEND=\=COLSTART), %format('figura je:~a\n a polja ~a ~a ~a ~a',[F,ROWSTART,COLSTART,ROWEND,COLEND]),
@@ -192,7 +192,10 @@ mozeDaDodje('N',ROWSTART,COLSTART,ROWEND,COLEND,_):-
   1)beli:ako je na vrsti 2 moze da dodje na vrstu 4 i istu kolonu.
   	Inace moze na 1 vrstu vise, ako je apsolutna razlika kolona<=1. 
   2)crni:ako je na vrsti 7 moze da dodje na vrstu 5 i istu kolonu.
-  	Inace moze na 1 vrstu nize, ako je aposolutna razlika kolona<=1.*/
+  	Inace moze na 1 vrstu nize, ako je aposolutna razlika kolona<=1.
+    kod pesaka razlikujemo 2 tipa kretanja:
+    1)normalno-pomera se za 1 polje napred(ili 2 na pocetku)-za ovaj slucaj krajnje polje mora biti prazno
+    2)dijagonalno-pomera se za 1 polje napred i 1 u stranu-za ovaj slucaj krajnje polje mora da ima figuru suprotne boje*/
 mozeDaDodje('p',2,X,4,X,T):-nadjiFiguruNaDatojPoziciji(T,4,X,'O').
 mozeDaDodje('p',ROWSTART,COLSTART,ROWEND,COLEND,T):-
     ROWS is ROWEND-1, ROWS=:=ROWSTART, R2 is COLEND-COLSTART,abs(R2)=<1,krajnjePoljeNijePraznoAkoIdeDijagonalno(T,COLSTART,ROWEND,COLEND).
@@ -220,7 +223,7 @@ nadjiElemenatNaPozicijiUListi([_|R],X,TRENUTNAPOZICIJA,TRAZENAPOZICIJA):-
 pocetnoPoljeImaDatuFiguru(T,F,RED,KOLONA):-nadjiFiguruNaDatojPoziciji(T,RED,KOLONA,F).
 %krajnje polje nema figuru iste boje
 krajnjePoljeNemaFiguruIsteBoje(T,F,RED,KOLONA):-boja(F,X),nadjiFiguruNaDatojPoziciji(T,RED,KOLONA,F1),boja(F1,Y),X=\=Y.
-%boja- za prazno polje 0, za belog 1 i za crnog 2
+%boja- 0 za prazno polje, 1 za bele figure i 2 za crne figure
 boja('O',0).
 boja('q',1).
 boja('k',1).
